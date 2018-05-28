@@ -1,0 +1,44 @@
+' Extracts Acronyms and writes to text document (acronym is two or more capital letters)
+'based off of:   http://stackoverflow.com/questions/10917155/how-do-i-find-all-acronyms-in-an-ms-word-document-using-a-macro
+
+'This catches words that are all capitals but aren't acronyms. I was going to delete all words that matched the MS Word dictionary (capitalized non-acronyms),
+'but I think this could potentially cause problems if a short acronym is a word. Need to read through list afterward.
+
+Sub Acronym()
+
+  Dim dict, k, tmp As Variant
+    Dim regEx, Match, Matches
+    Dim rngRange As Range
+    Dim myFile As String
+    Set regEx = CreateObject("vbscript.regexp")
+    Set dict = CreateObject("scripting.dictionary")
+
+    regEx.Pattern = "[A-Z]{2,}" 'defines acronym as 2 or more upper-case letters;  try [A-Z]{1,}([a-z]*|\&|\.*)[A-Z]{1,}  if issues
+    regEx.IgnoreCase = False
+    regEx.Global = True
+    Set Matches = regEx.Execute(ActiveDocument.Range.Text)
+    For Each Match In Matches
+        tmp = Match.Value
+        'Checks to see if current acronym is already listed
+        If Not dict.Exists(tmp) Then dict.Add tmp, 0
+        dict(tmp) = dict(tmp) + 1
+        Next
+
+
+'output file - must create text doc before running!
+    myFile = "c:\acronyms.txt"
+     
+    Open myFile For Output As #1
+    
+        Write #1, "acronym", "occurrences"
+    
+    For Each k In dict.Keys
+        
+         Write #1, k, dict(k)
+         
+    Next k
+
+
+Close #1
+
+End Sub
